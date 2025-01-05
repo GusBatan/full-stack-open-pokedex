@@ -47,27 +47,24 @@ jobs:
     needs: [simple_deployment_pipeline, version_bump_and_tag]
     runs-on: ubuntu-20.04
     steps:
-      - name: Success Notification
-        if: ${{ success() && env.SHOULD_DEPLOY }}
-        uses: Ilshidur/action-discord@v2
-        with:
-          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          message: |
-            :white_check_mark: **Deployment Successful!**
-            - **Version:** Bumped and deployed.
-            - **Commit:** ${{ github.event.head_commit.message }}
-            - **Committer:** ${{ github.event.head_commit.author.name }}
-            - **Branch:** ${{ github.ref_name }}
-            - :rocket: The new version is live! 🎉
-      - name: Failure Notification
-        if: ${{ failure() }}
-        uses: Ilshidur/action-discord@v2
-        with:
-          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          message: |
-            :x: **Build Failed!**
-            - **Commit:** ${{ github.event.head_commit.message }}
-            - **Committer:** ${{ github.event.head_commit.author.name }}
-            - **Branch:** ${{ github.ref_name }}
-            - **Error:** Job failure in step `${{ job.status }}`.
-            - Please check the logs for more details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      - name: Test Success
+          uses: rjstone/discord-webhook-notify@v1
+          if: success()
+          with:
+              severity: info
+              details: Test Succeeded!
+              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Test Failure
+          uses: rjstone/discord-webhook-notify@v1
+          if: failure()
+          with:
+              severity: error
+              details: Test Failed!
+              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Test Cancelled
+          uses: rjstone/discord-webhook-notify@v1
+          if: cancelled()
+          with:
+              severity: warn
+              details: Test Cancelled!
+              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
